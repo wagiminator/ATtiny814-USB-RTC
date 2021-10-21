@@ -11,19 +11,19 @@
 // and set the selector switch to UPDI. After uploading, set the switch to
 // UART. Select 9600 BAUD in the serial monitor.
 //
-//                            +-\/-+
-//                      Vcc  1|    |14  GND
-//         ------- (D0) PA4  2|    |13  PA3 (D10) ------- 
-//         ------- (D1) PA5  3|    |12  PA2  (D9) ------- RXD
-//         --- DAC (D2) PA6  4|    |11  PA1  (D8) ------- TXD
-//         ------- (D3) PA7  5|    |10  PA0 (D11) ------- UPDI
-// CRYSTAL ------- (D4) PB3  6|    |9   PB0  (D7) SCL --- 
-// CRYSTAL ------- (D5) PB2  7|    |8   PB1  (D6) SDA --- 
-//                            +----+
+//                              +-\/-+
+//                        Vcc  1|    |14  GND
+//         ------- (AIN4) PA4  2|    |13  PA3 (AIN3) -------- 
+//         ------- (AIN5) PA5  3|    |12  PA2 (AIN2) -------- RXD
+//         --- DAC (AIN6) PA6  4|    |11  PA1 (AIN1) -------- TXD
+//         ------- (AIN7) PA7  5|    |10  PA0 (AIN0) -------- UPDI
+// CRYSTAL -------------- PB3  6|    |9   PB0 (AIN11) SCL --- 
+// CRYSTAL -------------- PB2  7|    |8   PB1 (AIN10) SDA --- 
+//                              +----+
 //
 // Core:          megaTinyCore (https://github.com/SpenceKonde/megaTinyCore)
 // Board:         ATtiny1614/1604/814/804/414/404/214/204
-// Chip:          ATtiny814 or ATtiny414 or ATtiny214
+// Chip:          ATtiny1614 or ATtiny814 or ATtiny414 or ATtiny214
 // Clock:         5 MHz internal
 //
 // Leave the rest on default settings. Select "Serial port and 4.7k (pyupdi style)"
@@ -53,7 +53,6 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
-
 // -----------------------------------------------------------------------------
 // Time and Date Functions (refer to AN2543)
 // -----------------------------------------------------------------------------
@@ -70,13 +69,16 @@ typedef struct {
 
 time t;
 
-const char* TIME_days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+// Convert string into integer (2 digits)
+uint8_t str2dec(const char *p) {
+  return( (*p++ - '0') * 10 + (*p - '0') );
+}
 
 // Get compile date and time to use as initial time (refer to AN2543)
 void TIME_init(void) {
-  char *ptr = __DATE__;
+  char *ptr = __DATE__;                       // format "Feb 12 1996"
 
-  // month
+  // Month
   if (*ptr == 'J') {
     ptr++;
     if (*ptr == 'a') {
@@ -124,34 +126,27 @@ void TIME_init(void) {
     ptr += 4;
   }
 
-  // day
-  char date[3] = {*ptr, *(ptr + 1), '\0'};
-  t.date       = atoi(date);
+  // Day
+  t.date = str2dec(ptr);
   ptr += 3;
   
-  // year
-  char year[5] = {*ptr, *(ptr + 1), *(ptr + 2), *(ptr + 3), '\0'};
-  t.year       = atoi(year);
+  // Year
+  t.year = (uint16_t) str2dec(ptr) * 100;
+  ptr += 2;
+  t.year += str2dec(ptr);
 
-  ptr = __TIME__;
+  ptr = __TIME__;                             // format "23:59:01"
   
-  // hour
-  date[0] = *ptr;
-  date[1] = *(ptr + 1);
+  // Hour
+  t.hour = str2dec(ptr);
   ptr += 3;
-  t.hour = atoi(date);
   
-  // minute
-  date[0] = *ptr;
-  date[1] = *(ptr + 1);
+  // Minute
+  t.minute = str2dec(ptr);
   ptr += 3;
-  t.minute = atoi(date);
   
-  // second
-  date[0] = *ptr;
-  date[1] = *(ptr + 1);
-  ptr += 3;
-  t.second = atoi(date);
+  // Second
+  t.second = str2dec(ptr);
 }
 
 // Returns TRUE if year is NOT a leap year (refer to AN2543)
@@ -162,8 +157,8 @@ uint8_t TIME_notLeapYear(void) {
 
 // Returns day of the week (Sakamoto's method, refer to wikipedia)
 uint8_t TIME_dayOfTheWeek(void) {
-  uint16_t y = t.year;
   static uint8_t td[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+  uint16_t y = t.year;
   if (t.month < 3) y -= 1;
   return (y + y/4 - y/100 + y/400 + td[t.month - 1] + t.date) % 7;
 }
@@ -210,11 +205,10 @@ void TIME_update(void) {
 
 // Setup external 32.768 kHz crystal and periodic interrupt timer (PIT)
 void RTC_init(void) {
-  _PROTECTED_WRITE(CLKCTRL_XOSC32KCTRLA, (CLKCTRL_ENABLE_bm | CLKCTRL_RUNSTDBY_bm));
-  while (CLKCTRL.MCLKSTATUS & CLKCTRL_XOSC32KS_bm);
+  _PROTECTED_WRITE(CLKCTRL_XOSC32KCTRLA, CLKCTRL_ENABLE_bm); // enable crystal
   RTC.CLKSEL      = RTC_CLKSEL_TOSC32K_gc;    // select external 32K crystal
   RTC.PITINTCTRL  = RTC_PI_bm;                // enable periodic interrupt
-  RTC.PITCTRLA    = RTC_PERIOD_CYC32768_gc    // set period to 1s
+  RTC.PITCTRLA    = RTC_PERIOD_CYC32768_gc    // set period to 1 second
                   | RTC_PITEN_bm;             // enable PIT
 }
 
@@ -273,9 +267,12 @@ void UART_printVal(uint8_t value) {
 // Send Date and Time
 // -----------------------------------------------------------------------------
 
+// Day of the week strings
+const char *TIME_days[] = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
 // Send time stamp via UART
 void sendTime() {
-  VPORTA.DIR   |= PIN1_bm;                    // set TX pin as output  
+  VPORTA.DIR |= PIN1_bm;                      // set TX pin as output  
 
   // Send time stamp
   UART_printVal(t.hour);   UART_write(':');
@@ -287,6 +284,7 @@ void sendTime() {
   UART_printVal(t.year / 100);
   UART_printVal(t.year % 100); UART_write('\n');
   
+  // Flush TX buffer
   USART0.STATUS |= USART_TXCIF_bm;            // clear USART TX complete flag
   while (!(USART0.STATUS & USART_TXCIF_bm));  // wait for USART TX to complete
   VPORTA.DIR &= ~PIN1_bm;                     // set TX pin as input to save power

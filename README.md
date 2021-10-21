@@ -18,11 +18,10 @@ In order to make the RTC tick, the external 32.768 kHz crystal must first be sel
 ```c
 // Setup external 32.768 kHz crystal and periodic interrupt timer (PIT)
 void RTC_init(void) {
-  _PROTECTED_WRITE(CLKCTRL_XOSC32KCTRLA, (CLKCTRL_ENABLE_bm | CLKCTRL_RUNSTDBY_bm));
-  while (CLKCTRL.MCLKSTATUS & CLKCTRL_XOSC32KS_bm);
+  _PROTECTED_WRITE(CLKCTRL_XOSC32KCTRLA, CLKCTRL_ENABLE_bm); // enable crystal
   RTC.CLKSEL      = RTC_CLKSEL_TOSC32K_gc;    // select external 32K crystal
   RTC.PITINTCTRL  = RTC_PI_bm;                // enable periodic interrupt
-  RTC.PITCTRLA    = RTC_PERIOD_CYC32768_gc    // set period to 1s
+  RTC.PITCTRLA    = RTC_PERIOD_CYC32768_gc    // set period to 1 second
                   | RTC_PITEN_bm;             // enable PIT
 }
 
@@ -34,6 +33,22 @@ ISR(RTC_PIT_vect) {
 
 ## Time and Date
 The time and date functions surprisingly take care of the time and date. When the firmware is uploaded, the time is automatically set to the current time (compilation time). The time and date are updated every second, triggered by the Periodic Interrupt Timer (PIT). Leap years are taken into account and weekdays are calculated. For more information on the relevant calculations, see [Microchip Application Note AN2543](https://ww1.microchip.com/downloads/en/Appnotes/AN2543-Temperature-Logger-with-ATtiny817-and-SD-Card-v2-00002543C.pdf) and [Sakamoto's method on wikipedia](https://en.wikipedia.org/wiki/Determination_of_the_day_of_the_week#Sakamoto's_methods).
+
+```c
+// Returns TRUE if year is NOT a leap year (refer to AN2543)
+uint8_t TIME_notLeapYear(void) {
+  if (!(t.year % 100)) return (t.year % 400);
+  return (t.year % 4);
+}
+
+// Returns day of the week (Sakamoto's method, refer to wikipedia)
+uint8_t TIME_dayOfTheWeek(void) {
+  static uint8_t td[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+  uint16_t y = t.year;
+  if (t.month < 3) y -= 1;
+  return (y + y/4 - y/100 + y/400 + td[t.month - 1] + t.date) % 7;
+}
+```
 
 ## UART Implementation
 The new tinyAVR are equipped with a hardware module for UART, so implementation is very easy. The internal oscillator is sufficiently accurate. The optional calibration with regard to the supply voltage was omitted here. Since the crystal oscillator is attached to the standard pins for UART, the alternative UART pins must be used. For more information on the USART module refer to [Microchip Technical Brief TB3216](https://ww1.microchip.com/downloads/en/Appnotes/TB3216-Getting-Started-with-USART-DS90003216.pdf).
