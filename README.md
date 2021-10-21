@@ -110,13 +110,13 @@ In order to save energy, the ATtiny spends most of its time in sleep mode power 
 
 ```c
 // Disable unused pins to save power
-  for (uint8_t pin=7; pin; pin--) (&PORTA.PIN0CTRL)[pin] = PORT_ISC_INPUT_DISABLE_gc;
-  PORTB.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
-  PORTB.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
+for (uint8_t pin=7; pin; pin--) (&PORTA.PIN0CTRL)[pin] = PORT_ISC_INPUT_DISABLE_gc;
+PORTB.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
+PORTB.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
 
-  // Prepare sleep mode
-  SLPCTRL.CTRLA |= SLPCTRL_SMODE_PDOWN_gc;    // set sleep mode to power down
-  SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;            // enable sleep mode
+// Prepare sleep mode
+SLPCTRL.CTRLA |= SLPCTRL_SMODE_PDOWN_gc;      // set sleep mode to power down
+SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;              // enable sleep mode
 ```
 
 According to the measurements with the [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), an average current of 2.5µA at a voltage of 3V is consumed in battery operation. A typical CR1225 battery has a capacity of 50mAh. This results in a theoretical battery life of 20,000 hours or 833 days or 2.34 years.
