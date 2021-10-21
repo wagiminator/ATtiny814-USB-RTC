@@ -1,5 +1,5 @@
 # USB-RTC - Real-Time Clock USB-Stick based on ATtiny214/414/814
-The USB-RTC is a simple real-time clock that can supply devices without one (e.g. Raspberry Pi) with the current time and date via USB. The CR1220 or CR1225 backup battery keeps the clock running even without an external power supply. The built-in 32.768 kHz crystal ensures a reasonable accuracy of the clock. The on board CH330N (or CH340N) USB-to-serial adapter can also be used as a UPDI programmer, so that no external programming device is required. This makes the USB-RTC also suitable as a development board for RTC applications based on the new tinyAVR or megaAVR microcontrollers.
+The USB-RTC is a simple real-time clock that can supply devices without one (e.g. Raspberry Pi) with the current time and date via USB. The CR1220, CR1225 or LIR1220 (recommended) backup battery keeps the clock running even without an external power supply. The built-in 32.768 kHz crystal ensures a reasonable accuracy of the clock. The on board CH330N (or CH340N) USB-to-serial adapter can also be used as a UPDI programmer, so that no external programming device is required. This makes the USB-RTC also suitable as a development board for RTC applications based on the new tinyAVR or megaAVR microcontrollers.
 
 ![pic1.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_pic1.jpg)
 ![pic2.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_pic2.jpg)
@@ -83,7 +83,7 @@ void UART_printVal(uint8_t value) {
 ```
 
 ## Supply Voltage Measurement
-The power supply of the ATtiny is switched between USB and battery automatically in hardware (power path control). However, in order to work as energy-efficiently as possible in battery operation, the ATtiny must know whether it is powered by USB or battery. A simple option that does not require any additional hardware or I/O pins is to measure the supply voltage (VCC, or more correctly VDD). The voltage of the battery is always less than 4V, the USB voltage is always greater. To find out the supply voltage, the internal 1.1V bandgap is measured with reference to VCC by the Analog to Digital Converter (ADC). Since high accuracy is not required, an 8-bit measurement is sufficient. It should be noted that the internal bandgap needs a short time to reach its accuracy, especially after waking up from a sleep mode. Fortunately, this time can be set in the associated register so that it is automatically taken into account in the following measurements. For more information on how to measure VCC refer to [Microchip Application Note AN2447](https://ww1.microchip.com/downloads/en/Appnotes/00002447A.pdf).
+The power supply of the ATtiny is switched between USB and battery automatically in hardware (power path control). However, in order to work as energy-efficiently as possible in battery operation, the ATtiny must know whether it is powered by USB or battery. A simple option that does not require any additional hardware or I/O pins is to measure the supply voltage (VCC, or more correctly VDD). The voltage of the battery is always less than 4.5V, the USB voltage is always greater. To find out the supply voltage, the internal 1.1V bandgap is measured with reference to VCC by the Analog to Digital Converter (ADC). Since high accuracy is not required, an 8-bit measurement is sufficient. It should be noted that the internal bandgap needs a short time to reach its accuracy, especially after waking up from a sleep mode. Fortunately, this time can be set in the associated register so that it is automatically taken into account in the following measurements. For more information on how to measure VCC refer to [Microchip Application Note AN2447](https://ww1.microchip.com/downloads/en/Appnotes/00002447A.pdf).
 
 ```c
 // ADC init for VCC measurements
@@ -101,7 +101,7 @@ void ADC_init(void) {
 uint8_t ADC_isUSB(void) {
   ADC0.COMMAND = ADC_STCONV_bm;               // start sampling supply voltage
   while (ADC0.COMMAND & ADC_STCONV_bm);       // wait for ADC sampling to complete
-  return (ADC0.RESL < 70);                    // return TRUE if VCC > 4V (70 = 256 * 1.1V / 4V)
+  return (ADC0.RESL < 63);                    // return TRUE if VCC > 4.5V (63=256*1.1V/4.5V)
 }
 ```
 
@@ -119,13 +119,13 @@ SLPCTRL.CTRLA |= SLPCTRL_SMODE_PDOWN_gc;      // set sleep mode to power down
 SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;              // enable sleep mode
 ```
 
-According to the measurements with the [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), an average current of 2.5µA at a voltage of 3V is consumed in battery operation. A typical CR1225 battery has a capacity of 50mAh. This results in a theoretical battery life of 20,000 hours or 833 days or 2.34 years.
+According to the measurements with the [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), an average current of 2.5µA at a voltage of 3V is consumed in battery operation. A typical CR1225 battery has a capacity of 50mAh. This results in a theoretical battery life of 20,000 hours or 833 days or 2.34 years. A rechargeable LIR1220 battery, on the other hand, only has a capacity of 8mAh, which leads to a service life of around 3,200 hours or 133 days. However, this is sufficient for most applications and since a LIR1220 can withstand higher current peaks, which leads to more stable operation, it is to be preferred overall.
 
 ![power1.png](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_power1.png)
 ![power2.png](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_power2.png)
 
 ## Compiling and Uploading
-- Install the CR1220 or CR1225 buffer battery.
+- Install the CR1220, CR1225 or LIR1220 (recommended) buffer battery.
 - Set the selector switch on the device to UPDI. 
 - Plug the device into a USB port of your PC.
 - Open your Arduino IDE.

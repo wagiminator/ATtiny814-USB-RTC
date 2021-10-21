@@ -318,6 +318,6 @@ int main(void) {
     ADC0.COMMAND = ADC_STCONV_bm;             // start sampling supply voltage
     TIME_update();                            // meanwhile increase time and date by one second
     while (ADC0.COMMAND & ADC_STCONV_bm);     // wait for ADC sampling to complete
-    if (ADC0.RESL < 70) sendTime();           // send time if VCC > 4V (70 = 256 * 1.1V / 4V)
+    if (ADC0.RESL < 63) sendTime();           // send time if VCC > 4.5V (63=256*1.1V/4.5V)
   }
 }
