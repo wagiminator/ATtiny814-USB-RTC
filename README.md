@@ -83,7 +83,7 @@ void UART_printVal(uint8_t value) {
 ```
 
 ## Supply Voltage Measurement
-The power supply of the ATtiny is switched between USB and battery automatically in hardware (power path control). However, in order to work as energy-efficiently as possible in battery operation, the ATtiny must know whether it is powered by USB or battery. A simple option that does not require any additional hardware or I/O pins is to measure the supply voltage (VCC, or more correctly VDD). The voltage of the battery is always less than 4.5V, the USB voltage is always greater. To find out the supply voltage, the internal 1.1V bandgap is measured with reference to VCC by the Analog to Digital Converter (ADC). Since high accuracy is not required, an 8-bit measurement is sufficient. It should be noted that the internal bandgap needs a short time to reach its accuracy, especially after waking up from a sleep mode. Fortunately, this time can be set in the associated register so that it is automatically taken into account in the following measurements. For more information on how to measure VCC refer to [Microchip Application Note AN2447](https://ww1.microchip.com/downloads/en/Appnotes/00002447A.pdf).
+The power supply of the ATtiny is switched between USB and battery automatically in hardware (power path control). However, in order to work as energy-efficiently as possible in battery operation, the ATtiny must know whether it is powered by USB or battery. A simple option that does not require any additional hardware or I/O pins is to measure the supply voltage (VCC, or more correctly VDD). The voltage of the battery is always less than 4.3V, the USB voltage is always greater. To find out the supply voltage, the internal 1.1V bandgap is measured with reference to VCC by the Analog to Digital Converter (ADC). Since high accuracy is not required, an 8-bit measurement is sufficient. It should be noted that the internal bandgap needs a short time to reach its accuracy, especially after waking up from a sleep mode. Fortunately, this time can be set in the associated register so that it is automatically taken into account in the following measurements. For more information on how to measure VCC refer to [Microchip Application Note AN2447](https://ww1.microchip.com/downloads/en/Appnotes/00002447A.pdf).
 
 ```c
 // ADC init for VCC measurements
@@ -101,7 +101,7 @@ void ADC_init(void) {
 uint8_t ADC_isUSB(void) {
   ADC0.COMMAND = ADC_STCONV_bm;               // start sampling supply voltage
   while (ADC0.COMMAND & ADC_STCONV_bm);       // wait for ADC sampling to complete
-  return (ADC0.RESL < 63);                    // return TRUE if VCC > 4.5V (63=256*1.1V/4.5V)
+  return (ADC0.RESL < 65);                    // return TRUE if VCC > 4.3V (65=256*1.1V/4.3V)
 }
 ```
 
@@ -134,7 +134,7 @@ According to the measurements with the [Power Profiler Kit II](https://www.nordi
 - Go to **Tools** and choose the following board options:
   - **Chip:**           ATtiny814 or ATtiny414 or ATtiny214
   - **Clock:**          5 MHz internal
-  - **Programmer:**     Serial port and 4.7k (pyupdi style)
+  - **Programmer:**     SerialUPDI
   - Leave the rest at the default settings.
 - Go to **Tools -> Burn Bootloader** to burn the fuses.
 - Open USB-RTC sketch and click **Upload**.
