@@ -140,13 +140,14 @@ According to the measurements with the [Power Profiler Kit II](https://www.nordi
   - Leave the rest at the default settings.
 - Go to **Tools -> Burn Bootloader** to burn the fuses.
 - Open USB-RTC sketch and click **Upload**.
-- Set the selector switch on the device to UART.
+- Set the selector switch on the device back to UART.
 
 ### If using the makefile (Linux/Mac)
 - Download [AVR 8-bit Toolchain](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers) and extract the sub-folders (avr, bin, include, ...) to /software/tools/avr-gcc. To do this, you have to register for free with Microchip on the download site.
 - Open a terminal.
 - Navigate to the folder with the makefile and the Arduino sketch.
 - Run "make install" to compile, burn the fuses and upload the firmware.
+- Set the selector switch on the device back to UART.
 
 The time and date of the USB-RTC are automatically set to the current time (compilation time) when the firmware is uploaded.
 
