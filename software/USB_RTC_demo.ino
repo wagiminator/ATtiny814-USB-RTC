@@ -1,6 +1,6 @@
 // ===================================================================================
 // Project:   USB-RTC - Demo
-// Version:   v1.0
+// Version:   v1.1
 // Year:      2021
 // Author:    Stefan Wagner
 // Github:    https://github.com/wagiminator
@@ -50,13 +50,15 @@
 // Chip:          ATtiny1614 or ATtiny814 or ATtiny414 or ATtiny214
 // Clock:         5 MHz internal
 //
-// Leave the rest on default settings. Select "SerialUPDI" as programmer in the
-// Arduino IDE and set the selector switch on the board to "UPDI". Don't forget
-// to "Burn bootloader"! Compile and upload the code.
-// No Arduino core functions or libraries are used.
+// Leave the rest on default settings. Don't forget to "Burn bootloader"!
+// Compile and upload the code.
 //
-// AVR toolchain for the new tinyAVR microcontrollers:
+// No Arduino core functions or libraries are used. To compile and upload without
+// Arduino IDE download AVR 8-bit toolchain at:
 // https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers
+// and extract to tools/avr-gcc. Use the makefile to compile and upload.
+//
+// Fuse Settings: 0:0x00 1:0x00 2:0x02 4:0x00 5:0xC5 6:0x04 7:0x00 8:0x00
 
 
 // ===================================================================================
@@ -77,7 +79,7 @@ typedef struct {
   uint8_t  second;
   uint8_t  minute;
   uint8_t  hour;
-  uint8_t  date;
+  uint8_t  day;
   uint8_t  month;
   uint16_t year;
 } time;
@@ -86,7 +88,7 @@ time t;
 
 // Convert string into integer (2 digits)
 uint8_t str2dec(const char *p) {
-  return( (*p++ - '0') * 10 + (*p - '0') );
+  return( (*p == ' ') ? (*(++p) - '0') : ((*p++ - '0') * 10 + (*p - '0')) );
 }
 
 // Get compile date and time to use as initial time (refer to AN2543)
@@ -142,7 +144,7 @@ void TIME_init(void) {
   }
 
   // Day
-  t.date = str2dec(ptr);
+  t.day = str2dec(ptr);
   ptr += 3;
   
   // Year
@@ -167,7 +169,7 @@ uint8_t TIME_dayOfTheWeek(void) {
   static uint8_t td[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
   uint16_t y = t.year;
   if(t.month < 3) y -= 1;
-  return((y + y/4 - y/100 + y/400 + td[t.month - 1] + t.date) % 7);
+  return((y + y/4 - y/100 + y/400 + td[t.month - 1] + t.day) % 7);
 }
 
 // Increase time and date by one second (refer to AN2543)
@@ -178,23 +180,23 @@ void TIME_update(void) {
       t.minute = 0;
       if(++t.hour == 24) {
         t.hour = 0;
-        if(++t.date == 32) {
+        if(++t.day == 32) {
           t.month++;
-          t.date = 1;
-        } else if(t.date == 31) {
+          t.day = 1;
+        } else if(t.day == 31) {
           if((t.month == 4) || (t.month == 6) || (t.month == 9) || (t.month == 11)) {
             t.month++;
-            t.date = 1;
+            t.day = 1;
           }
-        } else if(t.date == 30) {
+        } else if(t.day == 30) {
           if(t.month == 2) {
             t.month++;
-            t.date = 1;
+            t.day = 1;
           }
-        } else if(t.date == 29) {
+        } else if(t.day == 29) {
           if((t.month == 2) && (TIME_notLeapYear())) {
             t.month++;
-            t.date = 1;
+            t.day = 1;
           }
         }
         if(t.month == 13) {
@@ -286,7 +288,7 @@ void sendTime(void) {
   UART_printVal(t.minute); UART_write(':');
   UART_printVal(t.second); UART_print(" - ");
   UART_print(TIME_days[TIME_dayOfTheWeek()]); UART_print(", ");
-  UART_printVal(t.date);   UART_write('.');
+  UART_printVal(t.day);   UART_write('.');
   UART_printVal(t.month);  UART_write('.');
   UART_printVal(t.year / 100);
   UART_printVal(t.year % 100); UART_write('\n');

@@ -46,7 +46,7 @@ uint8_t TIME_dayOfTheWeek(void) {
   static uint8_t td[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
   uint16_t y = t.year;
   if (t.month < 3) y -= 1;
-  return (y + y/4 - y/100 + y/400 + td[t.month - 1] + t.date) % 7;
+  return (y + y/4 - y/100 + y/400 + td[t.month - 1] + t.day) % 7;
 }
 ```
 
@@ -128,6 +128,8 @@ According to the measurements with the [Power Profiler Kit II](https://www.nordi
 - Install the CR1220, CR1225 or LIR1220 (recommended) buffer battery.
 - Set the selector switch on the device to UPDI. 
 - Plug the device into a USB port of your PC.
+
+### If using the Arduino IDE
 - Open your Arduino IDE.
 - Make sure you have installed [megaTinyCore](https://github.com/SpenceKonde/megaTinyCore).
 - Go to **Tools -> Board -> megaTinyCore** and select **ATtiny1614/1604/814/804/414/404/214/204**.
@@ -139,6 +141,12 @@ According to the measurements with the [Power Profiler Kit II](https://www.nordi
 - Go to **Tools -> Burn Bootloader** to burn the fuses.
 - Open USB-RTC sketch and click **Upload**.
 - Set the selector switch on the device to UART.
+
+### If using the makefile (Linux/Mac)
+- Download [AVR 8-bit Toolchain](https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers) and extract the sub-folders (avr, bin, include, ...) to /software/tools/avr-gcc. To do this, you have to register for free with Microchip on the download site.
+- Open a terminal.
+- Navigate to the folder with the makefile and the Arduino sketch.
+- Run "make install" to compile, burn the fuses and upload the firmware.
 
 The time and date of the USB-RTC are automatically set to the current time (compilation time) when the firmware is uploaded.
 
