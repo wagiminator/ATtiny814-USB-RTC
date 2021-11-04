@@ -152,8 +152,8 @@ void TIME_init(void) {
   ptr += 2;
   t.year += str2dec(ptr);
 
-  ptr = __TIME__;                             // format "23:59:01"
-  t.hour = str2dec(ptr); ptr += 3;            // hour
+  ptr      = __TIME__;                        // format "23:59:01"
+  t.hour   = str2dec(ptr); ptr += 3;          // hour
   t.minute = str2dec(ptr); ptr += 3;          // minute
   t.second = str2dec(ptr);                    // second
 }
@@ -245,19 +245,21 @@ void ADC_init(void) {
 // UART Implementation (refer to TB3216)
 // ===================================================================================
 
-#define UART_BAUD       9600UL
-#define UART_BAUD_RATE  ((float)(F_CPU * 64 / (16 * (float)UART_BAUD)) + 0.5)
+#define UART_BAUD       9600
+#define UART_BAUD_RATE  4.0 * F_CPU / UART_BAUD + 0.5
+#define UART_flushed()  (USART0.STATUS & USART_TXCIF_bm)
 
 // UART init
 void UART_init(void) {
   PORTMUX.CTRLB = PORTMUX_USART0_bm;          // select alternative pins for USART0
-  USART0.BAUD   = (uint16_t)UART_BAUD_RATE;   // set BAUD
+  USART0.BAUD   = UART_BAUD_RATE;             // set BAUD
   USART0.CTRLB |= USART_TXEN_bm;              // enable TX
 }
 
 // UART transmit data byte
 void UART_write(uint8_t data) {
   while(!(USART0.STATUS & USART_DREIF_bm));   // wait until ready for next data
+  USART0.STATUS |= USART_TXCIF_bm;            // clear USART TX complete flag
   USART0.TXDATAL = data;                      // send data byte
 }
 
@@ -293,9 +295,7 @@ void sendTime(void) {
   UART_printVal(t.year / 100);
   UART_printVal(t.year % 100); UART_write('\n');
   
-  // Flush TX buffer
-  USART0.STATUS |= USART_TXCIF_bm;            // clear USART TX complete flag
-  while(!(USART0.STATUS & USART_TXCIF_bm));   // wait for USART TX to complete
+  while(!UART_flushed());                     // wait for UART TX to complete
   VPORTA.DIR &= ~PIN1_bm;                     // set TX pin as input to save power
 }
 

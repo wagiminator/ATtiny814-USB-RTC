@@ -54,8 +54,8 @@ uint8_t TIME_dayOfTheWeek(void) {
 The new tinyAVR are equipped with a hardware module for UART, so implementation is very easy. The internal oscillator is sufficiently accurate. The optional calibration with regard to the supply voltage was omitted here. Since the crystal oscillator is attached to the standard pins for UART, the alternative UART pins must be used. For more information on the USART module refer to [Microchip Technical Brief TB3216](https://ww1.microchip.com/downloads/en/Appnotes/TB3216-Getting-Started-with-USART-DS90003216.pdf).
 
 ```c
-#define UART_BAUD       9600UL
-#define UART_BAUD_RATE  ((float)(F_CPU * 64 / (16 * (float)UART_BAUD)) + 0.5)
+#define UART_BAUD       9600
+#define UART_BAUD_RATE  4.0 * F_CPU / UART_BAUD + 0.5
 
 // UART init
 void UART_init(void) {
