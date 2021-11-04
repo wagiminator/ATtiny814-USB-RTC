@@ -50,8 +50,9 @@
 // Chip:          ATtiny1614 or ATtiny814 or ATtiny414 or ATtiny214
 // Clock:         5 MHz internal
 //
-// Leave the rest on default settings. Don't forget to "Burn bootloader"!
-// Compile and upload the code.
+// Leave the rest on default settings. Select "SerialUPDI" as programmer in the
+// Arduino IDE and set the selector switch on the board to "UPDI". Don't forget
+// to "Burn bootloader"! Compile and upload the code.
 //
 // No Arduino core functions or libraries are used. To compile and upload without
 // Arduino IDE download AVR 8-bit toolchain at:
