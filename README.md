@@ -60,7 +60,7 @@ The new tinyAVR are equipped with a hardware module for UART, so implementation 
 // UART init
 void UART_init(void) {
   PORTMUX.CTRLB = PORTMUX_USART0_bm;          // select alternative pins for USART0
-  USART0.BAUD   = (uint16_t)UART_BAUD_RATE;   // set BAUD
+  USART0.BAUD   = UART_BAUD_RATE;             // set BAUD
   USART0.CTRLB |= USART_TXEN_bm;              // enable TX
 }
 
