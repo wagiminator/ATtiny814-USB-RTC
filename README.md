@@ -61,18 +61,18 @@ The new tinyAVR are equipped with a hardware module for UART, so implementation 
 void UART_init(void) {
   PORTMUX.CTRLB = PORTMUX_USART0_bm;          // select alternative pins for USART0
   USART0.BAUD   = UART_BAUD_RATE;             // set BAUD
-  USART0.CTRLB |= USART_TXEN_bm;              // enable TX
+  USART0.CTRLB  = USART_TXEN_bm;              // enable TX
 }
 
 // UART transmit data byte
 void UART_write(uint8_t data) {
-  while (!(USART0.STATUS & USART_DREIF_bm));  // wait until ready for next data
+  while (~USART0.STATUS & USART_DREIF_bm);    // wait until ready for next data
   USART0.TXDATAL = data;                      // send data byte
 }
 
 // UART print string
 void UART_print(const char *str) {
-  while (*str) UART_write(*str++);            // write characters of string
+  while(*str) UART_write(*str++);             // write characters of string
 }
 
 // UART print 2-digit integer value via UART
@@ -100,8 +100,8 @@ void ADC_init(void) {
 // ADC return TRUE if USB powered
 uint8_t ADC_isUSB(void) {
   ADC0.COMMAND = ADC_STCONV_bm;               // start sampling supply voltage
-  while (ADC0.COMMAND & ADC_STCONV_bm);       // wait for ADC sampling to complete
-  return (ADC0.RESL < 65);                    // return TRUE if VCC > 4.3V (65=256*1.1V/4.3V)
+  while(ADC0.COMMAND & ADC_STCONV_bm);        // wait for ADC sampling to complete
+  return(ADC0.RESL < 65);                     // return TRUE if VCC > 4.3V (65=256*1.1V/4.3V)
 }
 ```
 
@@ -115,8 +115,8 @@ PORTB.PIN0CTRL = PORT_ISC_INPUT_DISABLE_gc;
 PORTB.PIN1CTRL = PORT_ISC_INPUT_DISABLE_gc;
 
 // Prepare sleep mode
-SLPCTRL.CTRLA |= SLPCTRL_SMODE_PDOWN_gc;      // set sleep mode to power down
-SLPCTRL.CTRLA |= SLPCTRL_SEN_bm;              // enable sleep mode
+SLPCTRL.CTRLA  = SLPCTRL_SMODE_PDOWN_gc       // set sleep mode to power down
+               | SLPCTRL_SEN_bm;              // enable sleep mode
 ```
 
 According to the measurements with the [Power Profiler Kit II](https://www.nordicsemi.com/Products/Development-hardware/Power-Profiler-Kit-2), an average current of 2.5µA at a voltage of 3V is consumed in battery operation. A typical CR1225 battery has a capacity of 50mAh. This results in a theoretical battery life of 20,000 hours or 833 days or 2.34 years. A rechargeable LIR1220 battery, on the other hand, only has a capacity of 8mAh, which leads to a service life of around 3,200 hours or 133 days. However, this is sufficient for most applications and since a LIR1220 can withstand higher current peaks, which leads to more stable operation, it is to be preferred overall.
