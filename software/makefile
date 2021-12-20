@@ -13,7 +13,7 @@ SKETCH  = USB_RTC_demo.ino
 TARGET  = usbrtc_demo
 
 # Microcontroller Options
-DEVICE  = attiny814
+DEVICE ?= attiny814
 CLOCK   = 5000000
 FUSE0   = 0x00
 FUSE1   = 0x00
@@ -24,9 +24,9 @@ FUSE6   = 0x04
 FUSE7   = 0x00
 FUSE8   = 0x00
 
-# Programmer Options (serialupdi or jtag2updi)
+# Programmer Options
 PROGRMR = serialupdi
-PORT    = /dev/ttyUSB0
+PORT   ?= /dev/ttyUSB0
 
 # Paths
 GCCPATH = ./tools/avr-gcc
@@ -37,8 +37,7 @@ ADCPATH = ./tools/avrdude
 # Commands
 DFPINCL = -B $(DFPPATH)/gcc/dev/$(DEVICE)/ -I $(DFPPATH)/include/
 COMPILE = $(GCCPATH)/bin/avr-gcc $(DFPINCL) -flto -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK)UL -x c++ $(SKETCH)
-PYPROG  = python3 -u $(PYMPATH)/prog.py -t uart -u $(PORT) -b 230400 -d $(DEVICE)
-AVRDUDE = avrdude -C $(ADCPATH)/avrdude.conf -c jtag2updi -P $(PORT) -p $(DEVICE)
+PYPROG  = python -u $(PYMPATH)/prog.py -t uart -u $(PORT) -b 230400 -d $(DEVICE)
 CLEAN   = rm -f *.lst *.obj *.cof *.list *.map *.eep.hex *.o *.s *.d
 
 # Symbolic Targets
@@ -65,19 +64,11 @@ install: fuses upload
 
 upload:	hex
 	@echo "Uploading to $(DEVICE) ..."
-ifeq ($(PROGRMR),serialupdi)
 	@$(PYPROG) --fuses 2:$(FUSE2) 6:$(FUSE6) 8:$(FUSE8) -f $(TARGET).hex -a write
-else
-	@$(AVRDUDE) -U fuse2:w:$(FUSE2):m -U fuse6:w:$(FUSE6):m -U fuse8:w:$(FUSE8):m -U flash:w:$(TARGET).hex:i
-endif
 
 fuses:
 	@echo "Burning fuses of $(DEVICE) ..."
-ifeq ($(PROGRMR),serialupdi)
 	@$(PYPROG) --fuses 0:$(FUSE0) 1:$(FUSE1) 2:$(FUSE2) 4:$(FUSE4) 5:$(FUSE5) 6:$(FUSE6) 7:$(FUSE7) 8:$(FUSE8) -a erase
-else
-	@$(AVRDUDE) -e -Ufuse0:w:$(FUSE0):m -Ufuse1:w:$(FUSE1):m -Ufuse2:w:$(FUSE2):m -Ufuse4:w:$(FUSE4):m -Ufuse5:w:$(FUSE5):m -Ufuse6:w:$(FUSE6):m -Ufuse7:w:$(FUSE7):m -Ufuse8:w:$(FUSE8):m
-endif
 
 clean:
 	@echo "Cleaning all up ..."
