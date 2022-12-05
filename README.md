@@ -1,5 +1,5 @@
 # USB-RTC - Real-Time Clock USB-Stick based on ATtiny214/414/814
-The USB-RTC is a simple real-time clock that can supply devices without one (e.g. Raspberry Pi) with the current time and date via USB. The CR1220, CR1225 or LIR1220 (recommended) backup battery keeps the clock running even without an external power supply. The built-in 32.768 kHz crystal ensures a reasonable accuracy of the clock. The on board CH330N (or CH340N) USB-to-serial adapter can also be used as a UPDI programmer, so that no external programming device is required. This makes the USB-RTC also suitable as a development board for RTC applications based on the new tinyAVR or megaAVR microcontrollers.
+The USB-RTC is a simple real-time clock that can supply devices without one (e.g. Raspberry Pi) with the current time and date via USB. The CR1220, CR1225 or LIR1220 (recommended) backup battery keeps the clock running even without an external power supply. The built-in 32.768 kHz crystal ensures a reasonable accuracy of the clock. The on board CH340N (or CH330N) USB-to-serial adapter can also be used as a UPDI programmer, so that no external programming device is required. This makes the USB-RTC also suitable as a development board for RTC applications based on the new tinyAVR or megaAVR microcontrollers.
 
 ![pic1.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_pic1.jpg)
 ![pic2.jpg](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_pic2.jpg)
@@ -9,7 +9,7 @@ The wiring is pretty simple:
 
 ![wiring.png](https://raw.githubusercontent.com/wagiminator/ATtiny814-USB-RTC/main/documentation/USB-RTC_wiring.png)
 
-The power path control ensures that the battery is disconnected as soon as the device is supplied with power via USB. By using a MOSFET, the battery can supply the ATtiny with almost no voltage drop when no power is available via USB. The CH330N can be replaced by a CH340N. With the toggle switch the user can select UART mode for data transfer or UPDI mode for programming the device. C3/C4 are calculated for a crystal with a load capacitance (CL) of 12.5pF (C3 = C4 = 2 * CL - 7pF).
+The power path control ensures that the battery is disconnected as soon as the device is supplied with power via USB. By using a MOSFET, the battery can supply the ATtiny with almost no voltage drop when no power is available via USB. The CH340N can be replaced by a CH330N. With the toggle switch the user can select UART mode for data transfer or UPDI mode for programming the device. C3/C4 are calculated for a crystal with a load capacitance (CL) of 12.5pF (C3 = C4 = 2 * CL - 7pF).
 
 # Software
 ## RTC Implementation
