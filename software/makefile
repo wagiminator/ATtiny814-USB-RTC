@@ -32,7 +32,7 @@ PYPROG   = python3 -u ./tools/tinyupdi.py -d $(DEVICE)
 CLEAN    = rm -f *.lst *.obj *.cof *.list *.map *.eep.hex *.o *.s *.d
 
 # Compiler Flags
-CFLAGS   = -flto -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -x c++
+CFLAGS   = -w -flto -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -x c++
 CFLAGS  += -B include/dev/$(DEVICE) -I include
 
 # Symbolic Targets
